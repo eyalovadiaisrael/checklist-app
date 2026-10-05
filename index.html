@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מנהל רשימות התיוג שלי</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --background: #f3f4f6;
+            --card-bg: #ffffff;
+            --text: #1f2937;
+            --text-muted: #6b7280;
+            --border: #e5e7eb;
+            --danger: #ef4444;
+            --danger-hover: #fee2e2;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .app-wrapper {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            max-width: 900px;
+        }
+
+        /* סרגל צד של רשימות */
+        .sidebar {
+            width: 250px;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* האזור המרכזי של המשימות */
+        .main-content {
+            flex: 1;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 18px;
+            color: var(--text);
+        }
+
+        h1 {
+            margin-top: 0;
+            color: var(--primary);
+            font-size: 24px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary);
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            white-space: nowrap;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        /* עיצוב רשימת הקטגוריות בסרגל הצד */
+        .list-group {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .list-group-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            background-color: var(--background);
+            transition: all 0.2s;
+        }
+
+        .list-group-item:hover {
+            background-color: #e0e7ff;
+        }
+
+        .list-group-item.active {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        /* עיצוב המשימות */
+        .todo-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .todo-li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .todo-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+
+        .todo-text {
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .completed .todo-text {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+
+        .delete-btn {
+            background: none;
+            color: var(--danger);
+            padding: 4px 8px;
+            font-size: 14px;
+            border-radius: 4px;
+        }
+
+        .delete-btn:hover {
+            background-color: var(--danger-hover);
+        }
+
+        .stats {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        /* התאמה לניידים */
+        @media (max-width: 600px) {
+            .app-wrapper {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-wrapper">
+    <!-- סרגל צד לניהול הרשימות -->
+    <div class="sidebar">
+        <h2>הרשימות שלי</h2>
+        <div class="input-group" style="margin-bottom: 10px;">
+            <input type="text" id="newListInput" placeholder="רשימה חדשה..." style="padding: 8px; font-size: 14px;">
+            <button onclick="createNewList()" style="padding: 8px 12px; font-size: 14px;">צור</button>
+        </div>
+        <ul class="list-group" id="listsContainer"></ul>
+    </div>
+
+    <!-- האזור המרכזי להצגת משימות של הרשימה הנבחרת -->
+    <div class="main-content">
+        <h1 id="currentListName">טוען...</h1>
+        
+        <div class="input-group">
+            <input type="text" id="todoInput" placeholder="הוסף משימה חדשה...">
+            <button onclick="addItem()">הוסף משימה</button>
+        </div>
+
+        <ul class="todo-list" id="todoList"></ul>
+
+        <div class="stats" id="stats">טוען סטטיסטיקה...</div>
+    </div>
+</div>
+
+<script>
+    // מבנה הנתונים: אובייקט שמכיל מפתח לכל רשימה
+    let listData = JSON.parse(localStorage.getItem('multiChecklists')) || {
+        "כללי": []
+    };
+    
+    // מפתח הרשימה הנוכחית שמוצגת על המסך
+    let currentListKey = Object.keys(listData)[0] || "כללי";
+
+    // רינדור של כל האפליקציה
+    function renderApp() {
+        renderSidebar();
+        renderMainList();
+        saveToLocalStorage();
+    }
+
+    // הצגת סרגל הצד (רשימת הרשימות)
+    function renderSidebar() {
+        const container = document.getElementById('listsContainer');
+        container.innerHTML = '';
+
+        Object.keys(listData).forEach(listName => {
+            const li = document.createElement('li');
+            li.className = `list-group-item ${listName === currentListKey ? 'active' : ''}`;
+            li.onclick = () => {
+                currentListKey = listName;
+                renderApp();
+            };
+
+            // שם הרשימה
+            const span = document.createElement('span');
+            span.innerText = listName;
+            li.appendChild(span);
+
+            // כפתור מחיקת רשימה (לא מאפשר למחוק אם נשארה רק רשימה אחת)
+            if (Object.keys(listData).length > 1) {
+                const delBtn = document.createElement('button');
+                delBtn.className = 'delete-btn';
+                delBtn.style.padding = '2px 6px';
+                delBtn.style.fontSize = '12px';
+                delBtn.innerText = '✕';
+                delBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    deleteList(listName);
+                };
+                li.appendChild(delBtn);
+            }
+
+            container.appendChild(li);
+        });
+    }
+
+    // הצגת המשימות בתוך הרשימה הנבחרת
+    function renderMainList() {
+        document.getElementById('currentListName').innerText = currentListKey;
+        const listElement = document.getElementById('todoList');
+        listElement.innerHTML = '';
+
+        const currentItems = listData[currentListKey] || [];
+
+        currentItems.forEach((item, index) => {
+            const li = document.createElement('li');
+            li.className = 'todo-li';
+            if (item.completed) li.classList.add('completed');
+
+            li.innerHTML = `
+                <div class="todo-item" onclick="toggleItem(${index})">
+                    <input type="checkbox" ${item.completed ? 'checked' : ''}>
+                    <span class="todo-text">${item.text}</span>
+                </div>
+                <button class="delete-btn" onclick="deleteItem(event, ${index})">מחק</button>
+            `;
+            listElement.appendChild(li);
+        });
+
+        updateStats(currentItems);
+    }
+
+    // יצירת רשימה חדשה בסרגל הצד
+    function createNewList() {
+        const input = document.getElementById('newListInput');
+        const name = input.value.trim();
+
+        if (name === '' || listData[name]) return; // מונע שם ריק או שם כפול
+
+        listData[name] = [];
+        currentListKey = name; // עובר אוטומטית לרשימה החדשה
+        input.value = '';
+        renderApp();
+    }
+
+    // מחיקת רשימה שלמה לקטגוריה
+    function deleteList(listName) {
+        if (confirm(`האם אתה בטוח שברצונך למחוק את הרשימה "${listName}" על כל משימותיה?`)) {
+            delete listData[listName];
+            // אם מחקנו את הרשימה הנוכחית, נעבור לרשימה הראשונה הזמינה
+            if (currentListKey === listName) {
+                currentListKey = Object.keys(listData)[0];
+            }
+            renderApp();
+        }
+    }
+
+    // הוספת משימה לרשימה הפעילה
+    function addItem() {
+        const input = document.getElementById('todoInput');
+        const text = input.value.trim();
+        
+        if (text === '') return;
+
+        listData[currentListKey].push({ text: text, completed: false });
+        input.value = '';
+        renderApp();
+    }
+
+    // סימון משימה כבוצעה
+    function toggleItem(index) {
+        listData[currentListKey][index].completed = !listData[currentListKey][index].completed;
+        renderApp();
+    }
+
+    // מחיקת משימה בודדת
+    function deleteItem(event, index) {
+        event.stopPropagation();
+        listData[currentListKey].splice(index, 1);
+        renderApp();
+    }
+
+    // עדכון שורת הסטטיסטיקה
+    function updateStats(items) {
+        const total = items.length;
+        const completed = items.filter(item => item.completed).length;
+        const statsElement = document.getElementById('stats');
+
+        if (total === 0) {
+            statsElement.innerText = 'אין משימות ברשימה זו.';
+        } else {
+            statsElement.innerText = `${completed} מתוך ${total} משימות הושלמו`;
+        }
+    }
+
+    // שמירה ב-LocalStorage
+    function saveToLocalStorage() {
+        localStorage.setItem('multiChecklists', JSON.stringify(listData));
+    }
+
+    // האזנה למקש Enter בתיבות הטקסט
+    document.getElementById('todoInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') addItem();
+    });
+    document.getElementById('newListInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') createNewList();
+    });
+
+    // טעינה ראשונית
+    renderApp();
+</script>
+
+</body>
+</html>
